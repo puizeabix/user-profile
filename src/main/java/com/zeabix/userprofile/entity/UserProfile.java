@@ -12,6 +12,6 @@ public class UserProfile {
     private String email;
     private String firstName;
     private String lastName;
-    private String avartarUrl;
+    private String avatarUrl;
 
 }

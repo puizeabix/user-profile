@@ -14,7 +14,7 @@ public class SimpleUserProfileService implements IUserProfileService{
 
     @Override
     public Mono<UserProfile> createUserProfile(UserProfile profile) {
-        return null;
+        return repository.save(profile);
     }
 
     @Override
