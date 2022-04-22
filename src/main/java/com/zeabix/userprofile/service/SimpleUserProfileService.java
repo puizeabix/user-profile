@@ -19,7 +19,7 @@ public class SimpleUserProfileService implements IUserProfileService{
 
     @Override
     public Mono<UserProfile> getUserProfileDetail(String id) {
-        return null;
+        return repository.findById(id);
     }
 
     @Override
