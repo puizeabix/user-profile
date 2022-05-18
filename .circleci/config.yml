@@ -5,22 +5,116 @@ version: 2.1
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  say-hello:
+  code_quality:
     # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
     # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
       - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: "Lint"
+          command: "echo lint"
+      - run:
+          name: "Unit Test"
+          command: "echo unittest"
+      - run:
+          name: "Test Coverage"
+          command: "echo coverage"
+      - run:
+          name: "SonarCloud"
+          command: "echo sonarcloud"
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Build Image"
+          command: "echo docker build"
+      - run:
+          name: "Scan image"
+          command: "echo trivy"
+      - run:
+          name: "Push Image"
+          command: "echo docker push"
+      - run:
+          name: "Lint"
+          command: "echo lint"
+  release_candidate:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: "Pull image"
+          command: "echo docker pull tag"
+      - run:
+          name: "Tag image"
+          command: "echo trivy"
+      - run:
+          name: "Push Image"
+          command: "echo docker push"
+  staging:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: "Create Dynamic Infra"
+          command: "echo terraform"
+      - run:
+          name: "Deploy staging"
+          command: "echo update argo repo"
+  contract-testing:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Run contract testing"
+          command: "echo newman"
+  performance-testing:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Run contract testing"
+          command: "echo k6 run script.js"
+  production:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: "Deploy production"
+          command: "echo k6 run script.js"
+      - run:
+          name: "Sanity Test"
+          command: "echo newman"
+
+
+    
+
+      
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
+  development_workflow:
     jobs:
-      - say-hello
+      - code_quality
+      - build:
+          requires: [code_quality]
+  release_workflow:
+    jobs:
+      - release_candidate:
+          type: approval
+      - staging:
+          requires: [release_candidate]
+      - contract-testing:
+          requires: [staging]
+      - performance-testing:
+          requires: [contract-testing]
+      - production:
+          type: approval
+          requires: [performance-testing]
+
