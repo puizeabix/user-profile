@@ -84,7 +84,6 @@ jobs:
     docker:
       - image: cimg/base:stable
     steps:
-      - checkout
       - run:
           name: "Run Dynamic Security Scan"
           command: "echo burbsuite"
