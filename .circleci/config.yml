@@ -80,6 +80,17 @@ jobs:
       - run:
           name: "Run contract testing"
           command: "echo k6 run script.js"
+  dast:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: "Run Dynamic Security Scan"
+          command: "echo burbsuite"
+      - run:
+          name: "Store artifact"
+          command: "echo burbsuite"
   production:
     docker:
       - image: cimg/base:stable
@@ -114,7 +125,9 @@ workflows:
           requires: [staging]
       - performance-testing:
           requires: [contract-testing]
+      - dast:
+          requires: [performance-testing]
       - production:
           type: approval
-          requires: [performance-testing]
+          requires: [dast]
 
